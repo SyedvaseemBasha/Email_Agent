@@ -74,12 +74,14 @@ docs/_build/
 venv/
 .venv/
 env/
+automatic.py
+automatic.py/
 
 # IDE files
 .idea/
 *.iml
 .vscode/
-automatic.py
+
 
 # My custom
 __pycache__/
