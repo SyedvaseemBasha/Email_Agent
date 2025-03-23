@@ -11,7 +11,6 @@ This project is an AI-powered email response agent that automatically generates 
 -   **Data Storage:** Stores email queries, AI responses, response times, and accuracy ratings in a MongoDB database.
 -   **Email Sending:** Sends the AI-generated response back to the email recipient.
 -   **Admin Dashboard:** Provides statistics on total responses, average response time, average accuracy, and accuracy distribution.
--   **Recipient Email Extraction:** Attempts to extract the recipient's email from the body of the email.
 -   **Asynchronous Operations:** Uses background tasks to handle database storage and email sending without blocking the main application flow.
 
 ## Technologies Used
@@ -27,6 +26,24 @@ This project is an AI-powered email response agent that automatically generates 
 -   **Pydantic:** For data validation and settings management.
 -   **Torch:** For tensor operations with the LLM.
 -   **Accelerate:** For model acceleration.
+
+## Project Structure
+```
+email-response-agent/
+├── app/
+│   ├── main.py             # FastAPI application entry point
+│   ├── config.py           # Environment variable configuration
+│   ├── models/             # Pydantic models for validation
+│   │   └── schemas.py      # Data schemas (EmailQuery, FeedbackModel)
+│   ├── services/           # Core services (LLM, DB, Email)
+│   │   ├── llm_service.py  
+│   │   ├── db_service.py   
+│   │   └── email_service.py 
+│   └── utils/              # Utility scripts (Evaluator, Email Extractor)
+├── .env                    # Environment variables 
+├── requirements.txt        # Dependencies list
+└── README.md               # Project documentation 
+```
 
 ## Setup and Installation
 
@@ -84,11 +101,21 @@ This project is an AI-powered email response agent that automatically generates 
         5. **Important:** Store this password in a safe place. You will not be able to see it again.
     -   **Note:** For `MODEL_API_KEY`, you need to create a Hugging Face account and get an API key from your settings.
 
-5.  **Run MongoDB:**
+5.  **Add sender Email address**
+
+          ```
+            email-response-agent/
+             ├── app/
+             │   ├── main.py
+           ```
+     Ensure under main.py file you have to add email address of sender(whom to send) like below pic 👇.   
+     ![Screenshot 2025-03-23 073835](https://github.com/user-attachments/assets/dddf000e-20a2-4f9b-8a67-c5cd67b8e17f)
+
+6.  **Run MongoDB:**
 
     -   Ensure that MongoDB is running on your local machine (or update `MONGODB_URL` in `.env` if using a remote instance).
 
-6.  **Run the Application:**
+7.  **Run the Application:**
 
     ```bash
     uvicorn app.main:app --reload
@@ -115,7 +142,8 @@ This project is an AI-powered email response agent that automatically generates 
         {
             "ai_response": "Hello, thank you for your interest in the XYZ Smartwatch! Yes, the product is currently in stock. Standard delivery takes 3-5 business days, while express shipping takes 1-2 business days. Let us know if you need further assistance.",
             "response_time": 1.45,
-            "accuracy": 4
+            "accuracy": 4,
+            "response_id": "65xythjlxx9xx"
         }
         ```
 
@@ -126,7 +154,7 @@ This project is an AI-powered email response agent that automatically generates 
 -   **`POST /api/responses/{response_id}/feedback`**
     -   **Description:** Submits user feedback for a specific response.
     -   **Request Body:**
-
+   
         ```json
         {
             "user_rating": 4,
@@ -161,12 +189,7 @@ This project is an AI-powered email response agent that automatically generates 
             ]
         }
         ```
-
-## Project Structure
-
-Email/ ├── app/ │ ├── config.py # Environment variable loading and configuration │ ├── main.py # FastAPI application entry point │ ├── models/ │ │ └── schemas.py # Pydantic models for data validation │ ├── services/ │ │ ├── db_service.py # MongoDB interaction logic │ │ ├── email_service.py # Email sending logic │ │ └── llm_service.py # LLM interaction logic │ └── utils/ │ ├── email_extractor.py # Extract email from body │ └── evaluator.py # Response accuracy evaluation ├── .env # Environment variables (not committed to Git) ├── requirements.txt # Project dependencies └── README.md # Project documentation and usage instructions
-
-
+        
 ## Future Improvements
 
 -   **Advanced Accuracy Evaluation:** Implement a more sophisticated model for evaluating response accuracy.
