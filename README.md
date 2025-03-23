@@ -189,6 +189,171 @@ email-response-agent/
             ]
         }
         ```
+
+---
+
+## 1. MongoDB Setup
+### Database Connection
+**File**: `app/services/db_service.py`
+
+```python
+import motor.motor_asyncio
+from app.config import MONGODB_URL, DB_NAME
+
+# Connect to MongoDB
+client = motor.motor_asyncio.AsyncIOMotorClient(MONGODB_URL)
+db = client[DB_NAME]
+responses_collection = db["email_responses"]
+feedback_collection = db["user_feedback"]
+```
+
+### Database Schema
+#### `email_responses` Collection:
+```python
+response_doc = {
+    "subject": subject,
+    "email_body": email_body,
+    "ai_response": ai_response,
+    "response_time": response_time,
+    "accuracy": accuracy,
+    "timestamp": datetime.utcnow()
+}
+```
+- `subject`: (string) Email subject.
+- `email_body`: (string) Email content.
+- `ai_response`: (string) AI-generated response.
+- `response_time`: (float) Time taken to generate response.
+- `accuracy`: (integer) AI response accuracy (1-5).
+- `timestamp`: (datetime) Time response was generated.
+- `user_accuracy`: (integer) User rating (1-5), added after feedback.
+
+#### `user_feedback` Collection:
+```python
+feedback_doc = {
+    "user_rating": user_rating,
+    "comments": comments,
+    "timestamp": datetime.utcnow()
+}
+```
+- `user_rating`: (integer) User rating (1-5).
+- `comments`: (string, optional) User feedback.
+- `timestamp`: (datetime) Feedback submission time.
+
+### Storing Data
+#### Function: `store_response()`
+```python
+async def store_response(subject, email_body, ai_response, response_time, accuracy):
+    result = await responses_collection.insert_one(response_doc)
+    return str(result.inserted_id)
+```
+- Stores AI responses in MongoDB.
+- Returns the document ID of the stored response.
+
+#### Function: `store_feedback()`
+- Stores user feedback and updates `user_accuracy` in `email_responses`.
+
+### Retrieving Data
+#### Function: `get_responses()`
+```python
+async def get_responses():
+    cursor = responses_collection.find().sort("timestamp", -1)
+    responses = []
+    async for document in cursor:
+        document["_id"] = str(document["_id"])
+        responses.append(document)
+    return responses
+```
+- Fetches all stored responses sorted by timestamp (newest first).
+
+---
+
+## 2. Email Handling
+### Email Configuration
+**File**: `app/services/email_service.py`
+```python
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+from app.config import (
+    MAIL_USERNAME, MAIL_PASSWORD, MAIL_FROM,
+    MAIL_PORT, MAIL_SERVER, MAIL_FROM_NAME,
+    MAIL_STARTTLS, MAIL_SSL_TLS, USE_CREDENTIALS)
+
+mail_config = ConnectionConfig(
+    MAIL_USERNAME=MAIL_USERNAME,
+    MAIL_PASSWORD=MAIL_PASSWORD,
+    MAIL_FROM=MAIL_FROM,
+    MAIL_PORT=MAIL_PORT,
+    MAIL_SERVER=MAIL_SERVER,
+    MAIL_FROM_NAME=MAIL_FROM_NAME,
+    MAIL_STARTTLS=MAIL_STARTTLS,
+    MAIL_SSL_TLS=MAIL_SSL_TLS,
+    USE_CREDENTIALS=USE_CREDENTIALS,
+)
+```
+
+### Sending Emails
+#### Function: `send_email_response()`
+```python
+async def send_email_response(subject, body, recipient):
+    message = MessageSchema(
+        subject=f"Re: {subject}",
+        recipients=[recipient],
+        body=body,
+        subtype="html"
+    )
+    fm = FastMail(mail_config)
+    await fm.send_message(message)
+    return {"message": "Email sent successfully"}
+```
+- Sends AI-generated email responses.
+- Uses SMTP configuration for email dispatch.
+
+### Triggering Email Send
+**File**: `app/main.py`
+#### Function: `process_email()`
+```python
+@app.post("/api/email-response", response_model=EmailResponse)
+async def process_email(query: EmailQuery, background_tasks: BackgroundTasks):
+    background_tasks.add_task(
+        send_email_response,
+        query.subject,
+        ai_response,
+        "Syedvasimpc7@gmail.com"  # Replace with extracted email
+    )
+```
+- Handles incoming email queries.
+- Uses FastAPI BackgroundTasks to send emails asynchronously.
+
+---
+
+## To view a MongoDB database on your computer using its database name, follow these steps:
+
+ - ## Using MongoDB Compass (GUI)
+
+   1. Download & Install MongoDB Compass.
+
+   2. Connect to MongoDB
+
+      - Open Compass and enter your MongoDB connection string:
+
+        ```
+        mongodb://localhost:27017
+        ```
+      - Click "Connect".
+
+   3. Select Your Database
+
+      - Find your database in the left panel.
+
+      - Click on it to explore collections and documents.
+
+**Email Responses**
+  ![Screenshot 2025-03-23 090029](https://github.com/user-attachments/assets/240732d3-01de-4ac0-ac72-e7e518199049)
+
+**User Feedback** 
+  ![Screenshot (145)](https://github.com/user-attachments/assets/70f65f9d-9237-4913-aa99-7736c186d1ab)
+
+
+---------
         
 ## Future Improvements
 
