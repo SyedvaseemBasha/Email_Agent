@@ -5,7 +5,6 @@ from app.services.llm_service import generate_response
 from app.services.db_service import store_response, get_responses, store_feedback, responses_collection
 from app.services.email_service import send_email_response
 from app.utils.evaluator import evaluate_response_accuracy
-# from app.utils.email_extractor import extract_recipient_email
 from bson import ObjectId
 import time
 import asyncio
