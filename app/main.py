@@ -42,14 +42,16 @@ async def process_email(query: EmailQuery, background_tasks: BackgroundTasks):
             send_email_response,
             query.subject,
             ai_response,
-            "your_email_address"  # In production, extract from email_body/query
+            "Syedvasimpc7@gmail.com" #add who you want to send the email(email address)
+            # In production, extract from email_body/query
         )
         
         # Create response object
         response = EmailResponse(
             ai_response=ai_response,
             response_time=response_time,
-            accuracy=accuracy
+            accuracy=accuracy,
+            response_id=response_id
         )
 
         return response

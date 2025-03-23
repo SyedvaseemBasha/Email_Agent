@@ -6,7 +6,7 @@ import os
 
 llm = HuggingFaceEndpoint(
     repo_id="mistralai/Mistral-7B-Instruct-v0.1",
-    temperature=0.7,
+    temperature=0.8,
     max_new_tokens=512,
     top_p=0.95,
     repetition_penalty=1.15,

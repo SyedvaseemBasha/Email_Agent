@@ -18,6 +18,7 @@ class EmailResponse(BaseModel):
     ai_response: str
     response_time: float
     accuracy: int = Field(..., ge=1, le=5)
+    response_id: str
     
     model_config = {
         "json_schema_extra": {
