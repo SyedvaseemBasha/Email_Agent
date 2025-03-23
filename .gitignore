@@ -79,6 +79,7 @@ env/
 .idea/
 *.iml
 .vscode/
+automatic.py
 
 # My custom
 __pycache__/
